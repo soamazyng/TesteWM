@@ -1,0 +1,281 @@
+﻿@model IEnumerable<WebMotorsDesafio.Entities.AnuncioWebmotors>
+@{
+    ViewBag.Title = "Lista";
+}
+
+<h1>Anúncios</h1>
+
+<div class="d-flex justify-content-end mt-4">
+    <a class="btn btn-primary" href="/Create">Inserir Anúncio</a>
+</div>
+
+<h2>Lista</h2>
+
+<div class="row mb-5 mt-5">
+    <div class="col">
+        <table class="table" id="dataTables">
+            <thead>
+                <tr>
+                    <th scope="col">Marca</th>
+                    <th scope="col">modelo</th>
+                    <th scope="col">Versão</th>
+                    <th scope="col">Ano</th>
+                    <th scope="col">Quilometragem</th>
+                    <th scope="col">Observação</th>
+                    <th scope="col" style="min-width: 190px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @item.Marca
+                        </td>
+                        <td>
+                            @item.Modelo
+                        </td>
+                        <td>
+                            @item.Versao
+                        </td>
+                        <td>
+                            @item.Ano
+                        </td>
+                        <td>
+                            @item.Quilometragem
+                        </td>
+                        <td>
+                            @item.Observacao
+                        </td>
+                        <td>
+                           
+                            <a class="btn btn-info" href="@Url.Action("UpdateAnuncio", "Home", new { id = @item.Id })" ><i class="fas fa-edit"></i></a>
+                            <a class="btn btn-danger" id="btnDelete" href="javascript:void()" data-toggle="modal" data-target="#modalDelete"><i class="fas fa-trash"></i></a>
+                        </td>                       
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<h2>Novo Anúncio</h2>
+
+<form action="/" method="post">
+    <div class="row mt-5">
+        <div class="col">
+            <div class="form-group">
+                <label for="exampleInputEmail1">Marca</label>
+                <select class="form-control" id="marca">
+                    <option>Aguarde...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="exampleInputEmail1">Modelo</label>
+                <select class="form-control" id="modelo" disabled="disabled">
+                    <option>Por favor escolha uma Marca</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="exampleInputEmail1">Versão</label>
+                <select class="form-control" id="versao" disabled="disabled">
+                    <option>Por favor escolha um Modelo</option>
+                </select>
+            </div>            
+            <div class="form-group">
+                <label for="ano">Ano</label>
+                <input type="text" class="form-control" id="ano" />
+
+            </div>
+            <div class="form-group">
+                <label for="quilometragem">Quilometragem</label>
+                <input type="number" class="form-control" id="quilometragem" />
+            </div>
+            <div class="form-group">
+                <label for="quilometragem">Observação</label>
+                <textarea class="form-control" id="observacao"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </div>
+
+    </div>
+
+</form>
+
+<!-- modalDelete -->
+<div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        $(document).ready(function () {
+
+            $('#dataTables').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.22/i18n/Portuguese-Brasil.json'
+                }
+            });
+
+            // dropdownMarca
+            var $dropdownMarca = $("#marca");
+            var $dropdownModelo = $("#modelo");
+            var $dropdownVersao = $("#versao");
+            var $dropdownVeiculo = $("#veiculo");
+
+            $.ajax({
+                type: "GET",
+                url: "http://desafioonline.webmotors.com.br/api/OnlineChallenge/Make",
+                success: function (results) {
+                    if (results.length > 0) {
+                        $dropdownMarca.prop("disabled", false);
+                        $dropdownMarca.empty();
+                        $dropdownMarca.append($("<option />").val("").text("Selecione a marca"));
+                        $.each(results, function () {
+                            $dropdownMarca.append($("<option />").val(this.ID).text(this.Name));
+                        });
+                    } else {
+                        $dropdownMarca.append($("<option />").val("").text("Nenhuma marca encontrada"));
+                    }
+
+                }
+            });
+
+            $dropdownMarca.change(function () {
+
+                resetDropdowns("all");
+
+                if (this.value != "") {
+
+                    $.ajax({
+                        type: "GET",
+                        data: { "MakeID": this.value },
+                        url: "http://desafioonline.webmotors.com.br/api/OnlineChallenge/Model",
+                        success: function (results) {
+                            if (results.length > 0) {
+                                $dropdownModelo.prop("disabled", false);
+                                $dropdownModelo.empty();
+                                $dropdownModelo.append($("<option />").val("").text("Selecione um modelo"));
+                                $.each(results, function () {
+                                    $dropdownModelo.append($("<option />").val(this.ID).text(this.Name));
+                                });
+                            } else {
+                                $dropdownModelo.append($("<option />").val("").text("Nenhum modelo encontrado"));
+                            }
+
+                        }
+                    });
+
+                }
+
+            });
+
+
+            $dropdownModelo.change(function () {
+
+                resetDropdowns("modelo");
+
+                if (this.value != "") {
+
+                    $.ajax({
+                        type: "GET",
+                        data: { "ModelID": this.value },
+                        url: "http://desafioonline.webmotors.com.br/api/OnlineChallenge/Version",
+                        success: function (results) {
+                            if (results.length > 0) {
+                                $dropdownVersao.prop("disabled", false);
+                                $dropdownVersao.empty();
+                                $dropdownVersao.append($("<option />").val("").text("Selecione uma marca"));
+                                $.each(results, function () {
+                                    $dropdownVersao.append($("<option />").val(this.ID).text(this.Name));
+                                });
+                            } else {
+                                $dropdownVersao.append($("<option />").val("").text("Nenhuma versão encontrado"));
+                            }
+
+                        }
+                    });
+
+                }
+
+            });
+
+            $dropdownVersao.change(function () {
+
+                resetDropdowns("versao");
+
+                if (this.value != "") {
+
+                    $.ajax({
+                        type: "GET",
+                        data: { "ModelID": this.value },
+                        url: "http://desafioonline.webmotors.com.br/api/OnlineChallenge/Version",
+                        success: function (results) {
+                            if (results.length > 0) {
+                                $dropdownVersao.prop("disabled", false);
+                                $dropdownVersao.empty();
+                                $dropdownVersao.append($("<option />").val("").text("Selecione uma marca"));
+                                $.each(results, function () {
+                                    $dropdownVersao.append($("<option />").val(this.ID).text(this.Name));
+                                });
+                            } else {
+                                $dropdownVersao.append($("<option />").val("").text("Nenhuma versão encontrado"));
+                            }
+
+                        }
+                    });
+
+                }
+
+            });
+
+            function resetDropdowns(type) {
+
+                if (type==="all") {
+                    $dropdownModelo.empty();
+                    $dropdownModelo.prop("disabled", true);
+                    $dropdownModelo.append($("<option />").val("").text("Por favor escolha uma Marca"));
+
+                    $dropdownVersao.empty();
+                    $dropdownVersao.prop("disabled", true);
+                    $dropdownVersao.append($("<option />").val("").text("Por favor escolha um Modelo"));
+
+                    $dropdownVeiculo.empty();
+                    $dropdownVeiculo.prop("disabled", true);
+                    $dropdownVeiculo.append($("<option />").val("").text("Por favor escolha uma Versão"));
+                }
+
+                if (type === "modelo") {                   
+
+                    $dropdownVersao.empty();
+                    $dropdownVersao.prop("disabled", true);
+                    $dropdownVersao.append($("<option />").val("").text("Por favor escolha um Modelo"));
+
+                    $dropdownVeiculo.empty();
+                    $dropdownVeiculo.prop("disabled", true);
+                    $dropdownVeiculo.append($("<option />").val("").text("Por favor escolha uma Versão"));
+                }                                           
+                
+            }
+        });
+    </script>
+
+}
